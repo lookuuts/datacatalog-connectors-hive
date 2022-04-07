@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 import json
 import os
 import unittest
@@ -150,6 +152,66 @@ class AssembledEntryFactoryTestCase(unittest.TestCase):
             for assembled_table in assembled_tables:
                 table_entry = assembled_table.entry
                 self.assertEqual('default__funds', assembled_table.entry_id)
+                self.assertEqual(
+                    1567519048.0,
+                    table_entry.source_system_timestamps.create_time.timestamp(
+                    ))
+                self.assertEqual(
+                    1567519078.0,
+                    table_entry.source_system_timestamps.update_time.timestamp(
+                    ))
+                # Assert specific fields for table
+                self.assertEqual('table', table_entry.user_specified_type)
+                self.assertEqual('hive', table_entry.user_specified_system)
+                self.assertEqual(self.__MOCKED_ENTRY_PATH, table_entry.name)
+                self.assertEqual(
+                    '//metadata_host//hdfs://'
+                    'namenode:8020/user/hive/warehouse/funds',
+                    table_entry.linked_resource)
+                self.assertGreater(len(table_entry.schema.columns), 0)
+                first_column = table_entry.schema.columns[0]
+                self.assertEqual('string', first_column.type)
+                self.assertEqual('addr', first_column.column)
+                self.assertEqual('a new addr column', first_column.description)
+
+                second_column = table_entry.schema.columns[1]
+                self.assertEqual('string', second_column.type)
+                self.assertEqual('bar', second_column.column)
+
+                third_column = table_entry.schema.columns[2]
+                self.assertEqual('int', third_column.type)
+                self.assertEqual('foo', third_column.column)
+
+    def test_database_metadata_should_be_ignore(  # noqa: E501
+            self, entry_path):
+        entry_path.return_value = self.__MOCKED_ENTRY_PATH
+        factory = assembled_entry_factory.AssembledEntryFactory(
+            self.__PROJECT_ID, self.__LOCATION_ID, self.__METADATA_SERVER_HOST,
+            self.__ENTRY_GROUP_ID, ["ignored"], ["ignored_funds"])
+
+        database_metadata = convert_json_to_metadata_object(
+            retrieve_json_file('databases_with_two_table.json'))
+
+        assembled_entries = \
+            factory.make_entries_from_database_metadata(
+                database_metadata)
+
+        for assembled_database, assembled_tables in assembled_entries:
+            database_entry = assembled_database.entry
+
+            self.assertEqual('not_ignored', assembled_database.entry_id)
+            self.assertEqual('database', database_entry.user_specified_type)
+            self.assertEqual(self.__MOCKED_ENTRY_PATH, database_entry.name)
+            self.assertEqual('Default Hive database',
+                             database_entry.description)
+            self.assertEqual(
+                '//metadata_host//hdfs://namenode:8020/user/hive/warehouse',
+                database_entry.linked_resource)
+            self.assertEqual('hive', database_entry.user_specified_system)
+
+            for assembled_table in assembled_tables:
+                table_entry = assembled_table.entry
+                self.assertEqual('not_ignored__not_ignored_funds', assembled_table.entry_id)
                 self.assertEqual(
                     1567519048.0,
                     table_entry.source_system_timestamps.create_time.timestamp(

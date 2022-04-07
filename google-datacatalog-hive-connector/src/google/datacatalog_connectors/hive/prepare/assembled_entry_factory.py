@@ -29,8 +29,8 @@ class AssembledEntryFactory:
                  location_id,
                  metadata_host_server,
                  entry_group_id,
-                 ignore_schemas = [],
-                 ignore_tables = []
+                 ignore_schemas=[],
+                 ignore_tables=[]
                  ):
         self.__ignore_schemas = set(ignore_schemas)
         self.__ignore_tables = set(ignore_tables)
