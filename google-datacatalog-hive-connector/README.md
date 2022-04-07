@@ -148,7 +148,9 @@ google-datacatalog-hive-connector \
 --hive-metastore-db-user=$HIVE2DC_HIVE_METASTORE_DB_USER \
 --hive-metastore-db-pass=$HIVE2DC_HIVE_METASTORE_DB_PASS \
 --hive-metastore-db-name=$HIVE2DC_HIVE_METASTORE_DB_NAME \
---hive-metastore-db-type=$HIVE2DC_HIVE_METASTORE_DB_TYPE    
+--hive-metastore-db-type=$HIVE2DC_HIVE_METASTORE_DB_TYPE \
+--ignore-schemas=tmp,bi \
+--ignore-tables=google_analytics,crashlytics  
 ```
 
 ### 3.2. Run Docker entry point
