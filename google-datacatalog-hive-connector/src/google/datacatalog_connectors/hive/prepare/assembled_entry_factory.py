@@ -24,8 +24,17 @@ from google.datacatalog_connectors.hive.prepare import\
 
 class AssembledEntryFactory:
 
-    def __init__(self, project_id, location_id, metadata_host_server,
-                 entry_group_id):
+    def __init__(self,
+                 project_id,
+                 location_id,
+                 metadata_host_server,
+                 entry_group_id,
+                 ignore_schemas = [],
+                 ignore_tables = []
+                 ):
+        self.__ignore_schemas = set(ignore_schemas)
+        self.__ignore_tables = set(ignore_tables)
+
         self.__datacatalog_entry_factory = \
             datacatalog_entry_factory.DataCatalogEntryFactory(
                 project_id,
@@ -34,20 +43,21 @@ class AssembledEntryFactory:
                 entry_group_id)
 
     def make_entries_from_database_metadata(self, metadata_dict):
-        assmbled_entries = []
+        assembled_entries = []
         databases = metadata_dict['databases']
         for database in databases:
-            database_name = database.name
-            tables = database.tables
-            assembled_database = self.__make_entries_for_database(database)
+            if database.name not in self.__ignore_schemas:
+                database_name = database.name
+                tables = database.tables
+                assembled_database = self.__make_entries_for_database(database)
 
-            logging.info('\n--> Database: %s', database_name)
-            logging.info('\n%s tables ready to be ingested...', len(tables))
-            assembled_tables = self.__make_entry_for_tables(
-                tables, database_name)
+                logging.info('\n--> Database: %s', database_name)
+                logging.info('\n%s tables ready to be ingested...', len(tables))
+                assembled_tables = self.__make_entry_for_tables(
+                    tables, database_name)
 
-            assmbled_entries.append((assembled_database, assembled_tables))
-        return assmbled_entries
+                assembled_entries.append((assembled_database, assembled_tables))
+        return assembled_entries
 
     def __make_entries_for_database(self, database_dict):
         entry_id, entry = self.\
@@ -59,9 +69,10 @@ class AssembledEntryFactory:
     def __make_entry_for_tables(self, tables_dict, database_name):
         entries = []
         for table_dict in tables_dict:
-            entry_id, entry = self.\
-                __datacatalog_entry_factory.make_entry_for_table(table_dict,
-                                                                 database_name)
+            if table_dict.name not in self.__ignore_tables:
+                entry_id, entry = self.\
+                    __datacatalog_entry_factory.make_entry_for_table(table_dict,
+                                                                     database_name)
 
-            entries.append(prepare.AssembledEntryData(entry_id, entry))
+                entries.append(prepare.AssembledEntryData(entry_id, entry))
         return entries

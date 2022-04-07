@@ -35,6 +35,14 @@ class Hive2DatacatalogCli:
             os.environ['GOOGLE_APPLICATION_CREDENTIALS']\
                 = args.service_account_path
 
+        ignore_schemas = []
+        if "ignore_schemas" in args:
+            ignore_schemas = args.ignore_schemas.split(",")
+
+        ignore_tables = []
+        if "ignore_tables" in args:
+            ignore_tables = args.ignore_tables.split(",")
+
         datacatalog_synchronizer.DataCatalogSynchronizer(
             project_id=args.datacatalog_project_id,
             location_id=args.datacatalog_location_id,
@@ -43,7 +51,10 @@ class Hive2DatacatalogCli:
             hive_metastore_db_pass=args.hive_metastore_db_pass,
             hive_metastore_db_name=args.hive_metastore_db_name,
             hive_metastore_db_type=args.hive_metastore_db_type,
-            enable_monitoring=args.enable_monitoring).run()
+            enable_monitoring=args.enable_monitoring,
+            ignore_schemas=ignore_schemas,
+            ignore_tables=ignore_tables
+        ).run()
 
     @staticmethod
     def __parse_args(argv):
@@ -79,6 +90,9 @@ class Hive2DatacatalogCli:
             '(Can be suplied as GOOGLE_APPLICATION_CREDENTIALS env var)')
         parser.add_argument('--enable-monitoring',
                             help='Enables monitoring metrics on the connector')
+        parser.add_argument('--ignore-schemas', help='Ignore schemas separated by ","', type=str, default="")
+        parser.add_argument('--ignore-tables', help='Ignore tables separated by ","', type=str, default="")
+
         return parser.parse_args(argv)
 
 

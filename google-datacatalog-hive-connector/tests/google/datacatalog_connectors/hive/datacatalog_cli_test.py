@@ -41,6 +41,8 @@ class DatacatalogCLITestCase(unittest.TestCase):
         mocked_parse_args.hive_metastore_db_pass = 'pass'
         mocked_parse_args.hive_metastore_db_name = 'name'
         mocked_parse_args.hive_metastore_db_type = 'type'
+        mocked_parse_args.ignore_schemas = 'tmp,fff'
+        mocked_parse_args.ignore_tables = 'google,aws'
         mocked_parse_args.enable_monitoring = True
 
         parse_args.return_value = mocked_parse_args
@@ -53,7 +55,9 @@ class DatacatalogCLITestCase(unittest.TestCase):
             # Verify args which should contain the required attribute
             if '-h' not in command\
                     and '--service-account-path' not in command\
-                    and '--enable-monitoring' not in command:
+                    and '--enable-monitoring' not in command\
+                    and '--ignore-schemas' not in command\
+                    and '--ignore-tables' not in command:
                 params = call_arg[1]
                 required = params['required']
                 self.assertTrue(required)

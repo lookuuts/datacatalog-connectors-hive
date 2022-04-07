@@ -45,7 +45,10 @@ class DataCatalogSynchronizer:
                  hive_metastore_db_name=None,
                  hive_metastore_db_type=None,
                  metadata_sync_event=None,
-                 enable_monitoring=None):
+                 enable_monitoring=None,
+                 ignore_schemas=None,
+                 ignore_tables=None
+                 ):
         self.__entry_group_id = 'hive'
         self.__project_id = project_id
         self.__location_id = location_id
@@ -59,9 +62,11 @@ class DataCatalogSynchronizer:
         self.__metrics_processor = metrics_processor.MetricsProcessor(
             project_id, location_id, self.__entry_group_id, enable_monitoring,
             self.__task_id)
+        self.__ignore_schemas = ignore_schemas
+        self.__ignore_tables = ignore_tables
 
     def run(self):
-        logging.info('\n==============Start hive-to-datacatalog============')
+        logging.info('\n==============Start hive-to-data catalog============')
 
         logging.info('\n\n==============Scrape metadata===============')
         if self.__metadata_sync_event:
@@ -94,7 +99,10 @@ class DataCatalogSynchronizer:
 
         factory = assembled_entry_factory.AssembledEntryFactory(
             self.__project_id, self.__location_id, host_name,
-            self.__entry_group_id)
+            self.__entry_group_id,
+            self.__ignore_schemas,
+            self.__ignore_tables
+        )
         prepared_entries = factory.make_entries_from_database_metadata(
             databases_metadata)
 
